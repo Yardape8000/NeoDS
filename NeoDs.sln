@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual C++ Express 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NeoDs", "NeoDs.vcproj", "{647F3597-6CE2-486E-A3E6-4441518FF72D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cycloneMod", "Cyclone2\proj\cyclone.vcproj", "{461EFCAC-1F32-4588-8C8E-B41D13A5A77A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cycloneOrig", "Cyclone3\proj\cycloneOrig.vcproj", "{286518E0-24BA-4039-B4E7-7BCE45798111}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{647F3597-6CE2-486E-A3E6-4441518FF72D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{647F3597-6CE2-486E-A3E6-4441518FF72D}.Debug|Win32.Build.0 = Debug|Win32
+		{647F3597-6CE2-486E-A3E6-4441518FF72D}.Release|Win32.ActiveCfg = Release|Win32
+		{647F3597-6CE2-486E-A3E6-4441518FF72D}.Release|Win32.Build.0 = Release|Win32
+		{461EFCAC-1F32-4588-8C8E-B41D13A5A77A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{461EFCAC-1F32-4588-8C8E-B41D13A5A77A}.Debug|Win32.Build.0 = Debug|Win32
+		{461EFCAC-1F32-4588-8C8E-B41D13A5A77A}.Release|Win32.ActiveCfg = Release|Win32
+		{461EFCAC-1F32-4588-8C8E-B41D13A5A77A}.Release|Win32.Build.0 = Release|Win32
+		{286518E0-24BA-4039-B4E7-7BCE45798111}.Debug|Win32.ActiveCfg = Debug|Win32
+		{286518E0-24BA-4039-B4E7-7BCE45798111}.Debug|Win32.Build.0 = Debug|Win32
+		{286518E0-24BA-4039-B4E7-7BCE45798111}.Release|Win32.ActiveCfg = Release|Win32
+		{286518E0-24BA-4039-B4E7-7BCE45798111}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
