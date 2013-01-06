@@ -6,12 +6,12 @@
 #include "NeoIPC.h"
 #include "NeoAudio.h"
 
-static int vcount = 80;
-static touchPosition first,tempPos;
+//static int vcount = 80;
+//static touchPosition first,tempPos;
 
 static void handleInput()
 {
-	static int lastbut = -1;
+	/*static int lastbut = -1;
 	
 	uint16 but=0, x=0, y=0, xpx=0, ypx=0, z1=0, z2=0;
 
@@ -59,7 +59,7 @@ static void handleInput()
 		}
 	}
 	IPC->buttons		= but;
-	vcount ^= (80 ^ 130);
+	vcount ^= (80 ^ 130);*/
 }
 
 static void VcountHandler()

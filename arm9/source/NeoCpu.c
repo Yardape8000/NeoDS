@@ -178,7 +178,7 @@ void neoCpuInitMemoryTable()
 	}
 }
 
-static const char* cpuGetMemBase()
+/*static const char* cpuGetMemBase()
 {
 	if(g_neo->cpu.membase == (u32)g_neo->pRom0) {
 		return "MainProgram";
@@ -192,7 +192,7 @@ static const char* cpuGetMemBase()
 	} else {
 		return "Unknown";
 	}
-}
+}*/
 
 u32 neoDebugCpuCheckPc(u32 pc)
 {

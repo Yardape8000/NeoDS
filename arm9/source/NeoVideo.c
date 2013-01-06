@@ -122,23 +122,23 @@ static void vblankIntr()
 	static u16 sTime = 0;
 	//offset
 	if(g_size != NEOVIDEO_NORMAL) {
-		BG2_CX = g_neo->tileOffsetX + jitter4[sIndex + 0];
-		BG2_CY = g_neo->tileOffsetY + jitter4[sIndex + 1];
-		BG3_CX = g_neo->tileOffsetX + jitter4[sIndex + 2];
-		BG3_CY = g_neo->tileOffsetY + jitter4[sIndex + 3];
+		BACKGROUND.bg2_rotation.dx = g_neo->tileOffsetX + jitter4[sIndex + 0];
+		BACKGROUND.bg2_rotation.dy = g_neo->tileOffsetY + jitter4[sIndex + 1];
+		BACKGROUND.bg3_rotation.dx = g_neo->tileOffsetX + jitter4[sIndex + 2];
+		BACKGROUND.bg3_rotation.dy = g_neo->tileOffsetY + jitter4[sIndex + 3];
 		sIndex += 4;
 		if(sIndex >= 8) sIndex = 0;
 	} else {
-		BG2_CX = g_neo->tileOffsetX;
-		BG2_CY = g_neo->tileOffsetY;
-		BG3_CX = g_neo->tileOffsetX;
-		BG3_CY = g_neo->tileOffsetY;
+		BACKGROUND.bg2_rotation.dx = g_neo->tileOffsetX;
+		BACKGROUND.bg2_rotation.dy = g_neo->tileOffsetY;
+		BACKGROUND.bg3_rotation.dx = g_neo->tileOffsetX;
+		BACKGROUND.bg3_rotation.dy = g_neo->tileOffsetY;
 	}
 	//scale
-	BG2_XDX = g_neo->tileScaleX;
-	BG2_YDY = g_neo->tileScaleY;
-	BG3_XDX = g_neo->tileScaleX;
-	BG3_YDY = g_neo->tileScaleY;
+	BACKGROUND.bg2_rotation.xdx = g_neo->tileScaleX;
+	BACKGROUND.bg2_rotation.ydy = g_neo->tileScaleY;
+	BACKGROUND.bg3_rotation.xdx = g_neo->tileScaleX;
+	BACKGROUND.bg3_rotation.ydy = g_neo->tileScaleY;
 
 	sTime++;
 	if(sTime >= 60) {
@@ -180,7 +180,7 @@ bool neoVideoInit()
 	);
 	
 	//set 3d priority to be below fixed layer priority
-	BG0_CR = BG_PRIORITY_2;
+	REG_BG0CNT = BG_PRIORITY_2;
 
 	GFX_CONTROL = 1; //turn on texture mapping
 	GFX_VIEWPORT =

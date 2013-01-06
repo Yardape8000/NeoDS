@@ -19,7 +19,6 @@
 #include "guiConsole.h"
 
 static volatile u32 g_ms;
-static TLinearHeap g_slot2Heap;
 static TLinearHeap g_ramHeap;
 static u8 g_mainRam[1*MB+600*KB] ALIGN(32);
 
@@ -135,7 +134,7 @@ bool systemInit()
 	TIMER_DATA(0) = TIMER_FREQ_1024(1000);
 	TIMER_CR(0) = TIMER_DIV_1024 | TIMER_ENABLE | TIMER_IRQ_REQ;
 
-	powerON(POWER_ALL);
+	//powerON(POWER_ALL);
 
 	systemWriteLine("fatInit...");
 	bool fatOk = fatInit(8, true);
@@ -144,18 +143,6 @@ bool systemInit()
 		return false;
 	}
 
-	bool ramOk = ram_init(DETECT_RAM);
-	if(ramOk) {
-		volatile void* pSlot2Ram = ram_unlock();
-		u32 slot2Size = ram_size();
-		linearHeapInit(&g_slot2Heap, (void*)pSlot2Ram, slot2Size);
-		//ram_lock();
-		systemWriteLine("Found %d bytes of slot2ram", slot2Size);
-		ram_lock();
-	} else {
-		systemWriteLine("No slot2ram");
-		linearHeapInit(&g_slot2Heap, 0, 0);
-	}
 	linearHeapInit(&g_ramHeap, g_mainRam, sizeof(g_mainRam));
 
 	return true;
@@ -181,31 +168,6 @@ void systemRamReset()
 	linearHeapReset(&g_ramHeap);
 }
 
-void* systemSlot2Alloc(u32 size)
-{
-	return linearHeapAlloc(&g_slot2Heap, size);
-}
-
-u32 systemGetSlot2Free()
-{
-	return linearHeapGetFree(&g_slot2Heap);
-}
-
-void systemSlot2Reset()
-{
-	linearHeapReset(&g_slot2Heap);
-	systemWriteLine("Slot2 reset: %d bytes", systemGetSlot2Free());
-}
-
-void systemSlot2Unlock()
-{
-	ram_unlock();
-}
-
-void systemSlot2Lock()
-{
-	ram_lock();
-}
 
 #ifndef NEO_SHIPPING
 void systemWriteLine(const char* szLine, ...)

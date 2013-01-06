@@ -119,7 +119,7 @@ static inline void neoAudioIOWrite16(vu16* reg, u16 value)
 
 void neoAudioInit()
 {
-	powerON(POWER_SOUND);
+	//powerON(POWER_SOUND);
 	SOUND_CR = SOUND_ENABLE | SOUND_VOL(0x7F);
 	neoAudioReset();
 }

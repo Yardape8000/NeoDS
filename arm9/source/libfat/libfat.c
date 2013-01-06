@@ -77,17 +77,14 @@ const devoptab_t dotab_fat = {
 
 bool fatInit (u32 cacheSize, bool setAsDefaultDevice) {
 #ifdef NDS
-	bool slot1Device, slot2Device;
+	bool slot1Device;
 	
 	// Try mounting both slots
 	slot1Device = _FAT_partition_mount (PI_SLOT_1, cacheSize);
-	slot2Device = _FAT_partition_mount (PI_SLOT_2, cacheSize);
 	
 	// Choose the default device
 	if (slot1Device) {
 		_FAT_partition_setDefaultInterface (PI_SLOT_1);
-	} else if (slot2Device) {
-		_FAT_partition_setDefaultInterface (PI_SLOT_2);
 	} else {
 		return false;
 	}

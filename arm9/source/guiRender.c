@@ -42,19 +42,19 @@ void guiRenderInit()
 {
 	s32 i;
 
-	vramSetBankI(VRAM_I_SUB_BG); //text screen
+	vramSetBankI(VRAM_I_SUB_BG_0x06208000); //text screen
 	//set mode for subscreen (text)
 	videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE | DISPLAY_BG1_ACTIVE);
 
 	//text screen
-	SUB_BG0_CR = BG_MAP_BASE(20) | BG_TILE_BASE(2);
-	SUB_BG0_X0 = -4;
-	SUB_BG0_Y0 = -4;
+	REG_BG0CNT_SUB = BG_MAP_BASE(20) | BG_TILE_BASE(2);
+	REG_BG0HOFS_SUB = -4;
+	REG_BG0VOFS_SUB = -4;
 
 	//background screen
-	SUB_BG1_CR = BG_MAP_BASE(21) | BG_TILE_BASE(2);
-	SUB_BG1_X0 = 0;
-	SUB_BG1_Y0 = 0;
+	REG_BG1CNT_SUB = BG_MAP_BASE(21) | BG_TILE_BASE(2);
+	REG_BG1HOFS_SUB = 0;
+	REG_BG1VOFS_SUB = 0;
 
 	//palette
 	for(i = 0; i < 256; i++) {

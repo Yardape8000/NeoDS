@@ -34,13 +34,13 @@ void neoFixedInit()
 	s32 i;
 
 	//set up fixed display
-	BG2_CR =
+	REG_BG2CNT =
 		BG_PRIORITY_0 |
 		BG_TILE_BASE(0) |
 		BG_MAP_BASE(28) |
 		BG_RS_64x64;
 
-	BG3_CR =
+	REG_BG3CNT =
 		BG_PRIORITY_1 |
 		BG_TILE_BASE(0) |
 		BG_MAP_BASE(28) |

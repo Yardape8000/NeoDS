@@ -339,7 +339,6 @@ bool neoSystemOpen(const char* szFileName)
 	guiConsoleDump();
 
 	systemRamReset();
-	systemSlot2Reset();
 
 	cpuInit();
 	neoMemoryInit();

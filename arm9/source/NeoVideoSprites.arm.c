@@ -45,8 +45,6 @@ typedef struct _TSpriteTransferEntry {
 #define SPRITE_CACHE1_MEM(i) ((u8*)VRAM_A + i * SPRITE_CACHE_ENTRY_SIZE)
 #define SPRITE_CACHE1_SIZE (512*KB)
 
-#define SPRITE_CACHE2_MEM(i) (g_spriteCache2Ram + i * SPRITE_CACHE2_ENTRY_SIZE)
-
 #define SPRITE_CACHE1_COUNT (SPRITE_CACHE1_SIZE / SPRITE_CACHE_ENTRY_SIZE)
 #define SPRITE_CACHE_COUNT SPRITE_CACHE1_COUNT
 
@@ -54,21 +52,14 @@ typedef struct _TSpriteTransferEntry {
 #define SPRITE_CACHE1_LAST (SPRITE_CACHE1_FIRST + SPRITE_CACHE1_COUNT - 1)
 
 #define SPRITE_TABLE_SIZE (64*MB / SPRITE_CACHE_ENTRY_SIZE)
-#define SPRITE_TABLE2_SIZE (64*MB / SPRITE_CACHE2_ENTRY_SIZE)
 #define SPRITE_NUMBER (64*MB / SPRITE_SIZE)
 
-static u8* g_spriteCache2Ram;
 static TSpriteCacheEntry g_spriteCache[SPRITE_CACHE_COUNT] DTCM_BSS;
-static TSpriteCacheEntry* g_spriteCache2;
-static u32 g_spriteCache2Count;
 static u32 g_cacheIndex DTCM_BSS;
-static u32 g_cache2Index DTCM_BSS;
-static u8* g_spriteReadBuffer; //read cache2 entries into here
 
 //one entry in array per 1024 byte sprite entry in neogeo sprite ROM
 //each entry here maps to g_spriteCache
 static u16 g_spriteTable[SPRITE_TABLE_SIZE] ALIGN(32);
-static u16* g_spriteTable2;
 static u8 g_spriteUsed[SPRITE_NUMBER / 8] ALIGN(32);
 
 static u8 g_spriteLoadBuffer[SPRITE_MAX_LOAD * SPRITE_CACHE_ENTRY_SIZE] ALIGN(512);
@@ -174,45 +165,6 @@ void neoSpriteInit()
 	memset(g_spriteUsed, 0, SPRITE_NUMBER / 8);
 	neoSystemLoadRegion(NEOROM_SPRITEUSAGE, g_spriteUsed, SPRITE_NUMBER / 8);
 
-	const u32 slot2Free = systemGetSlot2Free();
-	u32 cache2Size = 0;
-
-	if(slot2Free >= 20*MB) {
-		cache2Size = 16*MB;
-	} else if(slot2Free >= 10*MB) {
-		cache2Size = 8*MB;
-	} else if(slot2Free >= 5*MB) {
-		cache2Size = 4*MB;
-	}
-
-	if(cache2Size > 0) {
-		//set up secondary cache
-		systemSlot2Unlock();
-		g_spriteCache2Count = cache2Size / SPRITE_CACHE2_ENTRY_SIZE;
-		g_spriteCache2Ram = systemSlot2Alloc(g_spriteCache2Count * SPRITE_CACHE2_ENTRY_SIZE);
-		g_spriteCache2 = (TSpriteCacheEntry*)systemSlot2Alloc(sizeof(TSpriteCacheEntry) * g_spriteCache2Count);
-		g_spriteTable2 = systemSlot2Alloc(SPRITE_TABLE2_SIZE * sizeof(u16));
-
-		for(i = 0; i < SPRITE_TABLE2_SIZE; i++) {
-			g_spriteTable2[i] = CACHE_ENTRY_NULL;
-		}
-		for(i = 0; i < g_spriteCache2Count; i++) {
-			TSpriteCacheEntry* pEntry = &g_spriteCache2[i];
-			pEntry->frame = 0;
-			pEntry->index = CACHE_ENTRY_NULL;
-		}
-		g_cache2Index = 0;
-		g_spriteReadBuffer = systemRamAlloc(SPRITE_CACHE2_ENTRY_SIZE);
-		systemWriteLine("Sprite cache2 size: %d", cache2Size);
-		systemSlot2Lock();
-	} else {
-		g_spriteCache2Count = 0;
-		g_spriteTable2 = 0;
-		g_spriteCache2Ram = 0;
-		g_spriteTable2 = 0;
-		g_spriteReadBuffer = 0;
-		systemWriteLine("No sprite cache2");
-	}
 	//set up initial texture matrix
 	MATRIX_CONTROL = 3;
 	//scale up by 16 in x and y direction
@@ -274,7 +226,6 @@ static inline void drawSpriteTile(TSpritePacket* pPacket,
 void neoDrawSprites()
 {
 	TSpriteDisplayList* const restrict pDisplayList = g_spriteList;
-	u32 lastCache2EntryIndex = -1;
 	u32 zoomControl;
 	s32 zoomY = 0;
 	s32 fxXPos = 0;
@@ -417,72 +368,10 @@ void neoDrawSprites()
 				//wait for dma to finish before entering dldi driver
 				while(DMA_SRC(3) & DMA_BUSY) continue;
 
-				if(g_spriteTable2) {
-					const u32 cache2EntryIndex = actualIndex >> SPRITES_PER_ENTRY_SHIFT2;
-					const u32 cache2Offset =
-						(actualIndex & (SPRITES_PER_ENTRY2 - 1)) >> SPRITES_PER_ENTRY_SHIFT;
-					u32 cache2Index;
 
-					if(lastCache2EntryIndex == cache2EntryIndex) {
-						DMA_SRC(3) = (u32)g_spriteReadBuffer + cache2Offset * SPRITE_CACHE_ENTRY_SIZE;
-						DMA_DEST(3) = (u32)pLoadDst;
-						DMA_CR(3) = DMA_COPY_WORDS | (SPRITE_CACHE_ENTRY_SIZE >> 2);
-					} else {
-						//g_spriteTable2 is in slot2...unlock first
-						systemSlot2Unlock();
-						cache2Index = g_spriteTable2[cache2EntryIndex];
-						if(cache2Index == CACHE_ENTRY_NULL) {
-							g_cache2Index++;
-							if(g_cache2Index >= g_spriteCache2Count) {
-								g_cache2Index = 0;
-							}
-							cache2Index = g_cache2Index;
+				//load into load buffer
+				neoSystemLoadSprite(pLoadDst, cacheEntryIndex);
 
-							ASSERT(cache2Index < g_spriteCache2Count);
-							const u32 oldCache2EntryIndex = g_spriteCache2[cache2Index].index;
-							if(oldCache2EntryIndex != CACHE_ENTRY_NULL) {
-								ASSERTMSG(oldCache2EntryIndex < SPRITE_TABLE2_SIZE, "%d/%d",
-									oldCache2EntryIndex, SPRITE_TABLE2_SIZE);
-								g_spriteTable2[oldCache2EntryIndex] = CACHE_ENTRY_NULL;
-							}
-							//mark new sprite as in cache
-							ASSERT(cache2EntryIndex < SPRITE_TABLE2_SIZE);
-							g_spriteTable2[cache2EntryIndex] = cache2Index;
-							g_spriteCache2[cache2Index].index = cache2EntryIndex;
-
-							//lock slot2 before dldi
-							systemSlot2Lock();
-							//load into ram
-							neoSystemLoadSprite2(UNCACHED(g_spriteReadBuffer), cache2EntryIndex);
-							//dma a copy into secondary cache in slot2
-							systemSlot2Unlock();
-							DMA_SRC(3) = (u32)g_spriteReadBuffer;
-							DMA_DEST(3) = (u32)SPRITE_CACHE2_MEM(cache2Index);
-							DMA_CR(3) = DMA_COPY_WORDS | (SPRITE_CACHE2_ENTRY_SIZE >> 2);
-							volatile u32 dummy = DMA_CR(3);
-							dummy = DMA_CR(3);
-							while(DMA_SRC(3) & DMA_BUSY) continue;
-							//and lock slot2 again
-							systemSlot2Lock();
-							//dma a copy into load buffer
-							DMA_SRC(3) = (u32)g_spriteReadBuffer + cache2Offset * SPRITE_CACHE_ENTRY_SIZE;
-							DMA_DEST(3) = (u32)pLoadDst;
-							DMA_CR(3) = DMA_COPY_WORDS | (SPRITE_CACHE_ENTRY_SIZE >> 2);
-							lastCache2EntryIndex = cache2EntryIndex;
-						} else {
-							//dma from secondary cache into load buffer
-							DMA_SRC(3) = (u32)SPRITE_CACHE2_MEM(cache2Index) + cache2Offset * SPRITE_CACHE_ENTRY_SIZE;
-							DMA_DEST(3) = (u32)pLoadDst;
-							DMA_CR(3) = DMA_COPY_WORDS | (SPRITE_CACHE_ENTRY_SIZE >> 2);
-							while(DMA_SRC(3) & DMA_BUSY) continue;
-							//and lock slot2 again
-							systemSlot2Lock();
-						}
-					}
-				} else {
-					//load into load buffer
-					neoSystemLoadSprite(pLoadDst, cacheEntryIndex);
-				}
 				pLoadDst += SPRITE_CACHE_ENTRY_SIZE;
 				pTransfer->pDst = SPRITE_CACHE1_MEM(cache1Index);
 				//restore dma

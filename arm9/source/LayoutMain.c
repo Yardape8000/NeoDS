@@ -244,15 +244,15 @@ GUIOBJHANDLER_IMPLEMENT(GUIEVENT_CREATE)
 	TGuiButton* pButton = guiObjCreate(TGuiButton, &buttonBounds);
 	guiObjSetHandler(&pButton->parent.parent, screenOnHandler);
 
-	this->saveMode = SUB_DISPLAY_CR;
-	SUB_DISPLAY_CR = MODE_0_2D;
+	this->saveMode = REG_DISPCNT_SUB;
+	REG_DISPCNT_SUB = MODE_0_2D;
 	neoIPCSendCommand(NEOARM7_BACKLIGHTOFF);
 	GUIOBJHANDLER_HANDLE();
 }
 
 GUIOBJHANDLER_IMPLEMENT(GUIEVENT_DESTROY)
 {
-	SUB_DISPLAY_CR = this->saveMode;
+	REG_DISPCNT_SUB = this->saveMode;
 	neoIPCSendCommand(NEOARM7_BACKLIGHTON);
 	GUIOBJHANDLER_HANDLE();
 }
